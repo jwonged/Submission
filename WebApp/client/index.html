@@ -1,0 +1,132 @@
+<head>
+    <title> A Visual Question Answering System </title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="main.css">
+
+    <script type="text/javascript">
+    	var imageURLs = ["/media/jwong/Transcend/rob.jpg",
+    	"/media/jwong/Transcend/VQADataset/TrainSet/Images_train2014/COCO_train2014_000000214587.jpg",
+    	"/media/jwong/Transcend/samplepic.jpg"];
+    	var chosenfile = "";
+		function getImageTag() {
+			var img = '<img src=\"';
+			var randomIndex = Math.floor(Math.random() * imageURLs.length);
+			chosenfile = imageURLs[randomIndex]
+			img += chosenfile;
+			img += '\" alt=\"yolo\" width=\"448\" height=\"448\"/>';
+			return img;
+		}
+	</script>
+</head>
+
+
+<body>
+    <div class="header">
+      <h1>A Visual Question Answering System</h1>
+    </div>
+    
+    <div class="container col-lg-6">
+        <div style="padding-bottom: 0.5cm">
+            <div class="card text-center bg-light">
+                <div class="card-body" style="padding-bottom: 0.2cm">
+                    <br>
+                    <script type="text/javascript">
+					  document.write(getImageTag());
+					</script>
+					<br><br>
+					<p><font size="5">Ask a question about the picture!</a></font></p>
+                    
+                    <br>
+                    <input class="card-title form-control" type="text" id="input" name="input" placeholder="Enter your question here"/>
+                    <button class="card-text btn btn-outline-primary" id="btn" onclick="show(1)">Predict!</button>
+                    <div class="spinner" id="spinner" style="display: none">
+                      <div class="double-bounce1"></div>
+                      <div class="double-bounce2"></div>
+                    </div>
+                    
+                </div>
+                <div class="card-footer bg-white">
+                    <pre class="card-text api-pre" style="padding-bottom: 0.2cm">
+                        <font size="5"><div class="item" id="api_input"></div></font>
+                        <font size="5"><div class="item" id="api_output"></div></font>
+                        <!--<div class="item" id="api_alpha"></div>-->
+                       
+                        
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <img id="myImage" src="yolo.png"  style="visibility:hidden">
+</body>
+
+<script>
+	window.onload = function() {
+	  displayImage()
+	};
+    function show(sw) {
+    }
+    
+    var chosen = ""
+
+	function displayImage(){
+		var preview = document.querySelector('img');
+	    var num = Math.floor(Math.random() * 1); 
+	    document.getElementById('randomIm').src = imagesArray[num];
+
+	}
+
+	var uploadedim = ""
+	function previewFile() {
+	  var preview = document.querySelector('img');
+	  var file    = document.querySelector('input[type=file]').files[0];
+	  var reader  = new FileReader();
+
+	  reader.addEventListener("load", function () {
+	    preview.src = reader.result;
+	  }, false);
+
+	  if (file) {
+	    reader.readAsDataURL(file);
+	  }
+	}
+</script>
+<script type="text/javascript">
+    function api_call(input) {
+        $('#btn').toggle();
+        $('#spinner').toggle();
+        $.ajax({
+            url: "http://0.0.0.0:5000/api",
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify([input, chosenfile]),
+            success: function( data, textStatus, jQxhr ){
+                // toggle the spinner and button
+                $('#btn').toggle();
+                $('#spinner').toggle();
+                $('#api_input').html( data.input );
+                $('#api_output').html( data.ans );
+                $('#api_alpha').html( data.alpha );
+                $("#input").val("");
+                document.getElementById('myImage').src = "../" + data.alpha;
+                document.getElementById('myImage').style.visibility = "visible";
+            },
+            error: function( jqXhr, textStatus, errorThrown ){
+                $('#btn').toggle();
+                $('#spinner').toggle();
+                $('#api_input').html( "Backend model is not running");
+                $('#api_output').html( "Please check and reload" );
+                console.log( errorThrown );
+            },
+            timeout: 30000 
+        });
+    }
+    $( document ).ready(function() { 
+        $('#btn').click(function() {
+            var input = $("#input").val();
+            api_call(input);
+            input = "";
+    });
+    });
+</script>
